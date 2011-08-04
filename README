@@ -1,0 +1,19 @@
+jQuery plugin for converting from HTML list into a circle that looks like Google+.
+
+======================================
+how to use.
+======================================
+<ul id='list'>
+	<li>1</li>
+	<li>2</li>
+	<li>3</li>
+	<li>4</li>
+	<li>4</li>
+</ul>
+<script>
+$('#list').circlelist();
+</script>
+
+
+(I want to work in Silicon Valley as a software engineer.)
+Copyright (c) 2011 kissrobber, released under the MIT license

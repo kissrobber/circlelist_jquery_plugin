@@ -1,0 +1,299 @@
+<html>
+<head>
+<title>CircleList jQuery Plugin</title>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.15/jquery-ui.min.js"></script>
+<link href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.15/themes/base/jquery-ui.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.circlelist.js"></script>
+<style>
+h2{
+	border-bottom: dotted 1px;
+}
+#guide{
+	position:absolute;
+	right:10px;
+	top:10px;
+}
+#world{
+	width: 1000px;
+	height: 600px;
+	padding: 50px;
+	margin: 0px;
+	position:relative;
+	border:dotted 1px;
+}
+#world > .area > li.item.ui-draggable-disabled{
+	opacity: 1!important;
+}
+#world > .area > li.item.ui-selected{
+	opacity: 0.6!important;
+}
+.area{
+	position:absolute;
+}
+#area1{
+	top: 330px;
+	left: 330px;
+	width: 300px;
+	height: 300px;
+}
+#area1 .item{
+	width: 70px;
+	height: 70px;
+	background-color:#4F6FCF;
+}
+#area2{
+	top: 50px;
+	left: 650px;
+	width: 400px;
+	height: 400px;
+}
+#area2 .item{
+	width: 50px;
+	height: 50px;
+	background-color:#B953B9;
+}
+#area3{
+	top: 0px;
+	left: 0px;
+	width: 350px;
+	height: 350px;
+}
+#area3 .item{
+	width: 73px;
+	height: 73px;
+	border:solid 1px;
+}
+#generator {
+	float: left;
+}
+#generator td{
+	width: 200px;
+	padding: 10px;
+}
+#preview{
+	position:relative;
+	float: left;
+	width: 400px;
+	height: 400px;
+	margin: 50px;
+}
+</style>
+<script>
+var DD = function() {
+};
+DD.prototype = {
+    init: function() {
+    	var me = this;
+        $('.area').each(function() {
+            $(this).selectable({
+                selected:   me.onSelected,
+                unselected: me.onUnselected
+            	}).droppable({
+                hoverClass: 'ui-droppable-hover',
+                accept:     me.isAccept,
+                drop:       me.onDrop
+            });
+        });
+        $('.item').draggable({
+            containment: '#world',
+            start:       me.onStartDrag,
+            drag:        me.onDrag,
+            stop:        me.onStopDrag
+        }).draggable('disable');
+    },
+    isAccept: function(draggable) {
+		var oldDirectory = $(draggable).parent().get(0);
+		var newDirectory = $(this).get(0);
+       return (newDirectory.id != oldDirectory.id);
+    },
+    onSelected: function(e, ui) {
+        $(ui.selected).draggable('enable');
+    },
+    onUnselected: function(e, ui) {
+        $(ui.unselected).draggable('disable');
+    },
+    onStartDrag: function(e, ui) {
+        var helper   = ui.helper.get(0);
+        var parentId = $(helper).parent().get(0).id;
+        var selectedFiles = $('.area > .ui-selected');
+        helper.selectedFiles = [];
+        $.each(selectedFiles, function() {
+        	if($(this).parent().get(0).id == parentId){
+            this.startTop  = parseInt($(this).css('top'));
+            this.startLeft = parseInt($(this).css('left'));
+            helper.selectedFiles.push(this);
+        	} else {
+				DD.prototype.unselect(this);
+        	}
+        });
+    },
+    onDrag: function(e, ui) {
+        var helper       = ui.helper.get(0);
+        var topDistance  = ui.position.top  - helper.startTop;
+        var leftDistance = ui.position.left - helper.startLeft;
+        $.each(helper.selectedFiles, function() {
+		    if (this.selectedFiles == null) {
+				var newTop  = this.startTop  + topDistance;
+				var newLeft = this.startLeft + leftDistance;
+				$(this).css('top',  newTop  + 'px').css('left', newLeft + 'px');
+	        }
+		});
+    },
+    onStopDrag: function(e, ui) {
+        var helper          = ui.helper.get(0);
+        DD.prototype.unselect(helper.selectedFiles);
+        $.each(helper.selectedFiles, function() {
+			$(this).css('top',  this.startTop  + 'px').css('left', this.startLeft + 'px');
+		});
+        helper.selectedFiles = null;
+    },
+    onDrop: function(e, ui) {
+        var directory = e.target;
+        var items     = $('.area > .ui-selected');
+        var parent = $(items[0]).parent();
+        parent.circlelist("remove", items.get());
+        DD.prototype.unselect(items);
+        $(directory).circlelist("add", items.get());
+    },
+    unselect: function(item){
+		if(item.length){
+		} else {
+			item = [item];
+		}
+    	$.each(item, function(){
+    		DD.prototype.unselect
+	    	$(this).removeClass('ui-selected').draggable('disable');
+    	});
+   }
+};
+
+$(function() {
+	var area1 = $('#area1').circlelist();
+	var area2 = $('#area2').circlelist({item_width:50, reverse:true, speed:3000, start: 90});
+	var area3 = $('#area3').circlelist({item_width:73, start: 180});
+	new DD().init();
+});
+</script>
+</head>
+<body>
+<h1>CircleList jQuery Plugin.</h1>
+<p>jQuery plugin for converting from HTML list into a circle that <strong>looks like Google+</strong>.</p>
+<div id='world'>
+<div id="guide">You can <b>drag and drop</b> from one circle into another circle.</div>
+
+<ul class='area' id='area1'>
+<li class='item'>1</li>
+<li class='item'>2</li>
+<li class='item'>3</li>
+<li class='item'>4</li>
+<li class='item'>5</li>
+<li class='item'>6</li>
+<li class='item'>7</li>
+<li class='item'>8</li>
+<li class='item'>9</li>
+<li class='item'>10</li>
+</ul>
+
+<ul class='area' id='area2'>
+<li class='item'>A</li>
+<li class='item'>B</li>
+<li class='item'>C</li>
+<li class='item'>D</li>
+<li class='item'>E</li>
+<li class='item'>F</li>
+<li class='item'>G</li>
+<li class='item'>H</li>
+<li class='item'>I</li>
+<li class='item'>J</li>
+<li class='item'>K</li>
+<li class='item'>L</li>
+<li class='item'>M</li>
+<li class='item'>N</li>
+<li class='item'>O</li>
+<li class='item'>P</li>
+<li class='item'>Q</li>
+</ul>
+
+<ul class='area' id='area3'>
+<li class='item'><img src="http://api.dan.co.jp/twicon/kissrobber/bigger"/></li>
+<li class='item'><img src="http://api.dan.co.jp/twicon/ladygaga/bigger"/></li>
+<li class='item'><img src="http://api.dan.co.jp/twicon/barackobama/bigger"/></li>
+<li class='item'><img src="http://api.dan.co.jp/twicon/billgates/bigger"/></li>
+<li class='item'><img src="http://api.dan.co.jp/twicon/yokoono/bigger"/></li>
+<li class='item'><img src="http://api.dan.co.jp/twicon/EyeOfJackieChan/bigger"/></li>
+<li class='item'><img src="http://api.dan.co.jp/twicon/terryitou/bigger"/></li>
+<li class='item'><img src="http://api.dan.co.jp/twicon/ariyoshihiroiki/bigger"/></li>
+</ul>
+
+</div>
+<h2>download.</h2>
+<a href="jquery.circlelist.js">download</a><br/>
+<a href="">source & patch.</a><br/>
+<a href="">Official jQuery Plugin page.</a><br/>
+
+<h2>generator.</h2>
+<table id="generator" border="1">
+	<tr><th>item width</th><td><div id="item_width"></div></td></tr>
+	<tr><th>speed</th><td><div id="speed"></div></td></tr>
+	<tr><th>reverse</th><td><input id="reverse" type="checkbox"/></td></tr>
+	<tr><th>start</th><td><div id="start"></div></td></tr>
+	<tr><td colspan="2"><input type="button" value="generate." onclick="generate();"/></td></tr>
+	<tr><td colspan="2"><textarea id="code" cols="35" rows="6" ></textarea></td></tr>
+</table>
+<div id="preview"><ul><li>A</li><li>B</li><li>C</li><li>D</li><li>E</li><li>F</li><li>G</li><li>H</li><li>I</li><li>J</li><li>K</li></ul></div>
+<script>
+function generate(){
+	var prev = $("#preview").empty().html("<ul><li>A</li><li>B</li><li>C</li><li>D</li><li>E</li><li>F</li><li>G</li><li>H</li><li>I</li><li>J</li><li>K</li></ul>");
+	$("ul", prev).circlelist({
+		item_width:$( "#item_width" ).slider("value"),
+		speed:$( "#speed" ).slider("value"),
+		reverse:$( "#reverse" ).get(0).checked,
+		start:$( "#start" ).slider("value")
+	});
+	$("#code").val('$("ul").circlelist({\n'+
+		'\titem_width: ' + $( "#item_width" ).slider("value") + ',\n' +
+		'\tspeed: ' + $( "#speed" ).slider("value") + ',\n' +
+		'\treverse: ' + $( "#reverse" ).get(0).checked + ',\n' +
+		'\tstart: ' + $( "#start" ).slider("value") + '\n' +
+		'});'
+	);
+}
+$(function() {
+	$( "#item_width" ).slider({min:30,max:200, value:50});
+	$( "#speed" ).slider({min:100,max:3000, value:1000});
+	$( "#start" ).slider({min:0,max:360, value:180});
+});
+</script>
+<div style="clear:both;"></div>
+<h2>how to use.</h2>
+<pre>
+&lt;ul id='list'>
+	&lt;li>1&lt;/li>
+	&lt;li>2&lt;/li>
+	&lt;li>3&lt;/li>
+	&lt;li>4&lt;/li>
+	&lt;li>4&lt;/li>
+&lt;/ul>
+&lt;script>
+$('#list').circlelist();
+&lt;/script>
+</pre>
+<h2>for advanced use.</h2>
+This plugin is not for only HTML list. You can pass string data(for example user id) and translate into HTML element.<br/>
+Use parameters "values" and "translate".<br/>
+for details, write later...
+<h2>license.</h2>
+MIT License.
+<h2>about me.</h2>
+<a href="http://twitter.com/kissrobber">@kissrobber</a><br/>
+<a href="https://plus.google.com/117748236419454846701/posts">+kissrobber</a><br/>
+<a href="http://kissrobber.appspot.com/svgboobs/">recent my work</a><br/>
+<a href="http://d.hatena.ne.jp/kissrobber">my blog</a><br/>
+<a href="http://iq148.com">my works</a><br/>
+<a href="http://code.google.com/u/kissrobber/">my google code</a><br/>
+<a href="https://github.com/kissrobber">my github</a><br/>
+(I want to work in Silicon Valley as a software engineer.)<br/>
+<img src="https://lh5.googleusercontent.com/-deFuiXfjb7I/TjYa7w37nsI/AAAAAAAAAhU/r1Ey1jmd9Nc/s512/kissunchi_p.png"/>
+</body>
+</html>
